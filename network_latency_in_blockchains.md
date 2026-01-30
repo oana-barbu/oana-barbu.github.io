@@ -1,6 +1,6 @@
 ## Network Latency as the Silent Centralizer: Why Sub-Second Block Times are Incompatible with Decentralization
 
-Blockchains rely on networks of nodes exchanging messages to agree on state and make progress. These messages travel over the Internet, the global system of “pipes” that carry messages from one place to another. Some paths are short and wide (low latency, high bandwidth); others are long and narrow (prone to congestion and slow). In best-case conditions, a message may take 5-15 ms to cross a country, 35-50 ms to cross the Atlantic, 90-125 ms from Europe to East Asia, or 150-160 ms from South America to Australia.
+Blockchains rely on networks of nodes exchanging messages to agree on state and make progress. These messages travel over the Internet, the global system of “pipes” that carry messages from one place to another. Some paths are short and wide (low latency, high bandwidth); others are long and narrow (prone to congestion and slow). In best-case conditions, a message may take 5-15 ms to cross a country, 35-50 ms to cross the Atlantic, 90-125 ms from Europe to East Asia, or 150-160 ms from South America to Australia[^1].
 
 These figures come from datacenter-to-datacenter traffic on private backbones operated by large cloud providers, where traffic gets dedicated, high-speed pipes. On the public Internet, one-way delays are typically higher due to indirect routes, multiple hops, congestion, and packet loss. If you're deep in the Amazon rainforest pinging a friend on a Lord of the Rings pilgrimage in New Zealand, latency can be far above these lower bounds.
 
@@ -15,14 +15,14 @@ First, network delay is not uniform across participants. Even if node A can reac
 Second, how messages propagate across blockchain nodes directly affects latency. There are three common approaches:
 
 - **Direct messaging:** The fastest way to send a message is to send it directly to everyone who needs it. This is manageable in a small network with a few tens of nodes, but it scales horribly. In a network with one million nodes, each sender would need to transmit on the order of a million messages per event. Infeasible.
-- **Gossiping:** Each node forwards messages only to a small set of neighbors. This scales well with respect to per-node bandwidth requirements but incurs higher latency. In a million-node network, gossip typically requires 20-25 hops to reach most participants. With an average hop delay of 50-100 ms, one-way propagation alone takes 1-2.5 seconds. Since multi-phase consensus requires several such propagations, dissemination time alone can extend to multiple seconds.
+- **Gossiping:** Each node forwards messages only to a small set of neighbors. This scales well with respect to per-node bandwidth requirements but incurs higher latency. In a million-node network, gossip typically requires 20-25 hops to reach most participants[^2]. With an average hop delay of 50-100 ms, one-way propagation alone takes 1-2.5 seconds. Since multi-phase consensus requires several such propagations, dissemination time alone can extend to multiple seconds.
 - **The hybrid approach:** Nodes send messages to a predetermined subset of peers (determined by stake or other criteria), requiring fewer messages per sender than direct messaging, while providing more predictable delivery than random gossip. In Solana Alpenglow, for example, the leader sends to a stake-weighted set of relayers, who then rebroadcast to everyone else in a second hop. Assuming the same 50-100ms per hop, messages reach the network in 100-200 ms, far faster than pure gossip. In reality, though, in a low-hop setup, if a node is significantly farther, the tail latency spikes. If that node happens to be a relayer, then the latency of all nodes connected to it increases.
 
 Solana’s propagation design is faster than pure gossip and scales better than full-mesh direct messaging, but the scalability trade-off remains. In a hypothetical network with 1 million validators, reaching the entire network would still require nodes to send each message to thousands of peers, imposing significant bandwidth demands on the sending nodes.
 
-Solana can accommodate this because blocks are split into small (~1.2 KB) shreds and streamed incrementally. With shreds, fanning out to 1000 peers is feasible: for example, with a 10 ms streaming window per shred, the required upstream bandwidth is on the order of 1 Gbps, which is manageable. The same fanout would be far more demanding in systems like Ethereum, where blocks are propagated as whole objects and average 150-160 KB.
+Solana can accommodate this because blocks are split into small (~1.2 KB) shreds and streamed incrementally. With shreds, fanning out to 1000 peers is feasible: for example, with a 10 ms streaming window per shred, the required upstream bandwidth is on the order of 1 Gbps, which is manageable. The same fanout would be far more demanding in systems like Ethereum, where blocks are propagated as whole objects and can be hundreds of KB.
 
-Even so, a 10 ms per-shred window is already large. With an average transaction size of 0.5 KB, emitting one shred every 10 ms (100 shreds/sec) limits throughput to roughly 240 TPS. Solana achieves 5000+ TPS by shrinking the effective per-shred window, thereby increasing bandwidth requirements.
+Even so, a 10 ms per-shred window is already large. With an average transaction size of 0.5 KB, emitting one shred every 10 ms (100 shreds/sec) limits throughput to roughly 240 TPS. Solana achieves thousands of TPS by shrinking the effective per-shred window, thereby increasing bandwidth requirements.
 
 By now, the pattern should be clear: blockchains with low latency tend to have either:
 - few nodes (making direct communication feasible)
@@ -34,19 +34,19 @@ Consider a few concrete examples.
 
 #### Hyperliquid
 
-Hyperliquid advertises a median block time of 0.2 seconds. Supporting a three-phase BFT-style protocol within that budget implies an average one-way network delay below 70 ms, even before accounting for off-wire processing. In practice, this requires validators to co-locate in a single region. Indeed, the official setup documentation strongly encourages running nodes in Tokyo.
+Hyperliquid advertises a block time of 0.07 seconds, with median latency around 0.1 seconds. Supporting a three-phase BFT-style protocol within that budget implies an average one-way network delay below 25 ms, even before accounting for off-wire processing. In practice, this requires validators to co-locate in a single region. Indeed, the official setup documentation strongly encourages running nodes in Tokyo[^3].
 
-Hyperliquid also employs a jailing mechanism: validators can temporarily exclude peers that respond too slowly to consensus messages, ensuring that only low-latency nodes actively participate. The active validator set is small (around 25) because Hyperliquid’s HyperBFT relies on direct communication among validators.
+Hyperliquid also employs a jailing mechanism: validators can temporarily exclude peers that respond too slowly to consensus messages, ensuring that only low-latency nodes actively participate. The validator set is small (21 active validators) because Hyperliquid's HyperBFT relies on direct communication among validators.
 
-The result is 200 ms block times, achieved at the cost of extreme centralization.
+The result is ~100 ms block times, achieved at the cost of extreme centralization.
 
 #### Solana
 
-Solana’s new consensus protocol, Alpenglow, targets 150 ms median block finality, with best-case outcomes as low as 100 ms. It runs two concurrent paths:
+Solana's new consensus protocol, Alpenglow[^4], targets 150 ms median block finality, with best-case outcomes as low as 100 ms. It runs two concurrent paths:
 - Happy path: Proposal + one voting round, finalizing if ≥80% of stake responds (2 phases).
 - Fallback path: proposal + two voting rounds, finalizing if only ≥60% of stake responds (3 phases).
 
-Finality occurs as soon as the faster path completes. Simulations using the current mainnet stake distribution, with the leader located in Zurich, show that ~65% of the stake lies within a 50 ms one-way network delay of Zurich. This matches observed reality: roughly 60-70% of Solana’s delegated stake is hosted in Europe (per Helius analysis), with strong low-latency connectivity to central Europe. Achieving sub-150 ms finality, therefore, depends on significant geographic stake clustering.
+Finality occurs as soon as the faster path completes. Simulations using the current mainnet stake distribution, with the leader located in Zurich, show that ~65% of the stake lies within a 50 ms one-way network delay of Zurich. This matches observed reality: roughly 60-70% of Solana's delegated stake is hosted in Europe[^5], with strong low-latency connectivity to central Europe. Achieving sub-150 ms finality, therefore, depends on significant geographic stake clustering.
 
 Solana already has high operational requirements for validators and a relatively small validator set (~800). Substantially increasing the validator count would further stress the networking capacity of the nodes responsible for block dissemination.
 
@@ -69,13 +69,13 @@ Direct messaging requires nodes to know how to reach specific peers, which in pr
 
 #### Failure to participate and network assumptions
 
-Ethereum penalizes validators for inactivity through slashing and inactivity leaks, whereas Solana and Hyperliquid do not: validators may miss rewards or be temporarily excluded, but their stake is not burned.
+Ethereum penalizes validators for inactivity through slashing and inactivity leaks[^6], whereas Solana and Hyperliquid do not: validators may miss rewards or be temporarily excluded, but their stake is not burned.
 
 Ethereum’s inactivity leak is an automatic liveness mechanism that progressively reduces the stake of non-participating validators, allowing online validators to regain a supermajority and finalize, even under widespread or correlated outages. These harsher penalties force Ethereum’s designers to be more conservative about network assumptions. Real-world networks are unreliable: latency fluctuates, packets are dropped, and jitter is common, especially for non-professional setups. Even if the theoretical minimum one-way delay is 10 ms, practical designs must add safety margins. Longer block times provide this margin, enabling broader global participation from nodes with weaker connectivity and fewer operational guarantees.
 
 ### Why global decentralization matters
 
-You might think ultra-fast blockchains can ignore geography, but real-world events tell a different story. For example, in April 2025, Portugal, Spain, and parts of France experienced a 10-hour power outage. Had this happened in Japan, Hyperliquid would likely have been offline during that time.
+You might think ultra-fast blockchains can ignore geography, but real-world events tell a different story. For example, in April 2025, Portugal, Spain, and parts of France experienced a 12-hour power outage. Had this happened in Japan, Hyperliquid would likely have been offline during that time.
 
 The core premise of blockchains is continuous availability without trusted infrastructure. Geographic concentration undermines that promise: highly optimized, low-latency networks are fast, but fragile.
 
@@ -86,3 +86,12 @@ Low block times require low latency between blockchain participants, which in pr
 - Global decentralization (millions of validators spread worldwide) forces higher latency tolerance, longer block times, and generous margins for network variability.
 
 Speed comes with a decentralization tax. You can't have both ultra-low latency and a truly worldwide, permissionless network.
+
+---
+
+[^1]: [Azure Network Round-Trip Latency Statistics](https://learn.microsoft.com/en-us/azure/networking/azure-network-latency)
+[^2]: [Demers et al. "Epidemic Algorithms for Replicated Database Maintenance" (1987)](https://dl.acm.org/doi/10.1145/41840.41841)
+[^3]: [Hyperliquid Node Documentation](https://github.com/hyperliquid-dex/node)
+[^4]: [Anza: Alpenglow - A New Consensus for Solana](https://www.anza.xyz/blog/alpenglow-a-new-consensus-for-solana)
+[^5]: [Helius: Measuring Solana's Decentralization](https://www.helius.dev/blog/solana-decentralization-facts-and-figures)
+[^6]: [Ethereum.org: Proof-of-Stake Rewards and Penalties](https://ethereum.org/developers/docs/consensus-mechanisms/pos/rewards-and-penalties/)
