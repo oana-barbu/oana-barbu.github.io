@@ -3,7 +3,7 @@ layout: default
 title: Network Latency as the Silent Centralizer
 ---
 
-# Network Latency as the Silent Centralizer: Why Sub-Second Block Times are Incompatible with Decentralization
+## Why Sub-Second Block Times are Incompatible with Decentralization
 
 Blockchains rely on networks of nodes exchanging messages to agree on state and make progress. These messages travel over the Internet, the global system of “pipes” that carry messages from one place to another. Some paths are short and wide (low latency, high bandwidth); others are long and narrow (prone to congestion and slow). In best-case conditions, a message may take 5-15 ms to cross a country, 35-50 ms to cross the Atlantic, 90-125 ms from Europe to East Asia, or 150-160 ms from South America to Australia[^1].
 
