@@ -35,6 +35,8 @@ By now, the pattern should be clear: blockchains with low latency tend to have e
 
 Or both! The inverse also holds: as the number of nodes grows and their geographic spread increases, latency rises. But a large number of nodes and a wide geographic distribution are exactly what we usually mean by decentralization. This leads to the central conjecture of this piece: **greater decentralization necessarily implies higher latency**.
 
+![Decentralization Capacity vs. Minimum Block Time](/decentralization-vs-block-time.svg)
+
 Consider a few concrete examples.
 
 #### Hyperliquid
