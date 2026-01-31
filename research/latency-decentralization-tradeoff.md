@@ -1,4 +1,9 @@
-## Network Latency as the Silent Centralizer: Why Sub-Second Block Times are Incompatible with Decentralization
+---
+layout: default
+title: Network Latency as the Silent Centralizer
+---
+
+# Network Latency as the Silent Centralizer: Why Sub-Second Block Times are Incompatible with Decentralization
 
 Blockchains rely on networks of nodes exchanging messages to agree on state and make progress. These messages travel over the Internet, the global system of “pipes” that carry messages from one place to another. Some paths are short and wide (low latency, high bandwidth); others are long and narrow (prone to congestion and slow). In best-case conditions, a message may take 5-15 ms to cross a country, 35-50 ms to cross the Atlantic, 90-125 ms from Europe to East Asia, or 150-160 ms from South America to Australia[^1].
 
@@ -90,8 +95,13 @@ Speed comes with a decentralization tax. You can't have both ultra-low latency a
 ---
 
 [^1]: [Azure Network Round-Trip Latency Statistics](https://learn.microsoft.com/en-us/azure/networking/azure-network-latency)
+
 [^2]: [Demers et al. "Epidemic Algorithms for Replicated Database Maintenance" (1987)](https://dl.acm.org/doi/10.1145/41840.41841)
+
 [^3]: [Hyperliquid Node Documentation](https://github.com/hyperliquid-dex/node)
+
 [^4]: [Anza: Alpenglow - A New Consensus for Solana](https://www.anza.xyz/blog/alpenglow-a-new-consensus-for-solana)
+
 [^5]: [Helius: Measuring Solana's Decentralization](https://www.helius.dev/blog/solana-decentralization-facts-and-figures)
+
 [^6]: [Ethereum.org: Proof-of-Stake Rewards and Penalties](https://ethereum.org/developers/docs/consensus-mechanisms/pos/rewards-and-penalties/)
