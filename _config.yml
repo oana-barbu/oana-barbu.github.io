@@ -1,8 +1,12 @@
 title: Oana Barbu
 description: Research and writings
+repository: oana-barbu/oana-barbu.github.io
+url: "https://oana-barbu.github.io"
+baseurl: ""
 remote_theme: pages-themes/cayman@v0.2.0
 plugins:
   - jekyll-remote-theme
+  - jekyll-last-modified-at
 
 # Markdown settings
 markdown: kramdown
